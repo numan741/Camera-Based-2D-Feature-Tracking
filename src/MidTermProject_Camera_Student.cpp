@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <deque>
 #include <cmath>
 #include <limits>
 #include <opencv2/core.hpp>
@@ -37,7 +38,7 @@ int main(int argc, const char *argv[])
 
     // misc
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
-    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
+    deque<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = false;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
@@ -62,17 +63,13 @@ int main(int argc, const char *argv[])
         // push image into data frame buffer
         DataFrame frame;
         frame.cameraImg = imgGray;
+      	//Pushback to the end of the list 
         dataBuffer.push_back(frame);
+      	//Check that the size doesnot 
       	if(dataBuffer.size()>dataBufferSize){
-        	dataBuffer.
+        	dataBuffer.pop_front();
         }
-      
-      	DataFrame frame;
-        frame.cameraImg = imgGray;
-        dataBuffer.push_back(frame);
-        if (dataBuffer.size() > dataBufferSize) dataBuffer.pop_front();
-        assert(dataBuffer.size() <= dataBufferSize);
-
+   
         //// EOF STUDENT ASSIGNMENT
         cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
 
@@ -90,9 +87,26 @@ int main(int argc, const char *argv[])
         {
             detKeypointsShiTomasi(keypoints, imgGray, false);
         }
+        // Harris
+        else if (detectorType.compare("HARRIS") == 0)
+        {
+            detKeypointsHarris(keypoints, imgGray, false);
+        }
+
+        // Modern detector types, including FAST, BRISK, ORB, AKAZE, and SIFT
+        else if (detectorType.compare("FAST")  == 0 ||
+                 detectorType.compare("BRISK") == 0 ||
+                 detectorType.compare("ORB")   == 0 ||
+                 detectorType.compare("AKAZE") == 0 ||
+                 detectorType.compare("SIFT")  == 0)
+        {
+            detKeypointsModern(keypoints, imgGray, detectorType, false);
+        }
+
+        // Specified detectorType is unsupported
         else
         {
-            //...
+            throw invalid_argument(detectorType + " is not a valid detectorType");
         }
         //// EOF STUDENT ASSIGNMENT
 
